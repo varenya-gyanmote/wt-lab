@@ -1,0 +1,2610 @@
+# 1
+FirstSession.java
+
+import java.io.*;
+import java.util.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+public class FirstSession extends HttpServlet
+{
+public void doGet(HttpServletRequest req,
+HttpServletResponse res) throws IOException,
+ServletException
+{
+try
+{
+res.setContentType("text/html");
+PrintWriter out=res.getWriter();
+out.println("<html><body>");
+Date d1=new Date();
+String un=req.getParameter("uname");
+HttpSession session=req.getSession();
+session.setAttribute("user",un);
+out.println("Hello\t"+un);
+long t = d1.getTime();
+session.setAttribute("time",t);
+out.println("<p align=right> Time: "+ d1.getTime() +"</p>");
+out.println("<form method='get' action='sess2'>");
+out.println("<br><br> <input type='submit' value='logout'>");
+out.println("</form></body></html>");
+}
+catch(Exception e)
+{
+e.printStackTrace();
+}
+}}
+
+
+
+SecondSession.java
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.util.*;
+public class SecondSession extends HttpServlet
+{
+public void doGet(HttpServletRequest req,
+HttpServletResponse res) throws IOException,
+ServletException
+{
+try
+{
+res.setContentType("text/html");
+PrintWriter out=res.getWriter();
+HttpSession session=req.getSession();
+Date d2=new Date();
+String un=(String)session.getAttribute("user");
+long t1=(long)session.getAttribute("time");
+long t2=d2.getTime();
+session.invalidate();
+long diff=t2-t1;
+out.println("Thank you\t"+un);
+long seconds = (long) (diff / 1000) % 60 ;
+long minutes = (long) ((diff / (1000*60)) % 60);
+long hours = (long) ((diff / (1000*60*60)) % 24);
+String timeString = String.format("%02d:%02d:%02d", hours,
+minutes, seconds);
+out.println("<br><br> Session duration: "+timeString);
+}
+catch(Exception e)
+{
+e.printStackTrace();
+}
+}
+}
+
+
+sessionform.html
+
+<html>
+<head> <title> SESSION LOGIN </title> </head>
+<body>
+<center>
+<form action="sess1" method="get">
+Enter Name: <input type="text" name="uname"> <br>
+<input type="submit" value="LOGIN" name="register">
+</form>
+</center>
+</body>
+</html>
+
+
+ <servlet>
+   <servlet-name>sessionform</servlet-name>
+   <servlet-class>FirstSession</servlet-class>
+</servlet>
+<servlet-mapping>
+ <servlet-name>sessionform</servlet-name>
+  <url-pattern>/sess1</url-pattern>
+</servlet-mapping>
+
+<servlet>
+   <servlet-name>FirstSession</servlet-name>
+   <servlet-class>SecondSession</servlet-class>
+</servlet>
+<servlet-mapping>
+ <servlet-name>FirstSession</servlet-name>
+  <url-pattern>/sess2</url-pattern>
+</servlet-mapping>
+</web-app>
+
+
+
+
+
+
+
+# 2
+CalculatorServlet.java
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class CalculatorServlet extends HttpServlet {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        
+        int num1 = Integer.parseInt(request.getParameter("n1"));
+        int num2 = Integer.parseInt(request.getParameter("n2"));
+        String op = request.getParameter("op");
+        int result = 0;
+        
+        if(op.equals("+"))
+            result = num1 + num2;
+        else if(op.equals("-"))
+            result = num1 - num2;
+        else if(op.equals("*"))
+            result = num1 * num2;
+        else if(op.equals("/"))
+            result = num1 / num2;
+        else if(op.equals("%"))
+            result = num1 % num2;
+        
+        out.println("<html>");
+        out.println("<head><title>Calculator Result</title></head>");
+        out.println("<body>");
+        out.println("<center>");
+        out.println("<h1>Result: " + result + "</h1>");
+        out.println("</center>");
+        out.println("</body>");
+        out.println("</html>");
+    }
+}
+
+
+
+
+
+
+Cal.html
+
+<html>
+<head>
+<link rel="stylesheet" href="styles.css" >
+
+<title>Calculator</title>
+</head>
+<center>
+<h2>Calculator</h2>
+<form name="f1" action="cal" method="post" >
+Enter 1st number:
+<input type="text" name="n1" value=""><br><br>
+Enter 2nd number:
+<input type="text" name="n2" value=""><br><br>
+<input type="submit" value="+" name="op">
+<input type="submit" value="-" name="op">
+<input type="submit" value="*" name="op">
+<input type="submit" value="/" name="op">
+<input type="submit" value="%" name="op">
+</form>
+</center>
+</html>
+
+
+
+
+  <servlet>
+   <servlet-name>Calculator</servlet-name>
+   <servlet-class>CalculatorServlet</servlet-class>
+</servlet>
+<servlet-mapping>
+ <servlet-name>Calculator</servlet-name>
+  <url-pattern>/cal</url-pattern>
+</servlet-mapping>
+
+
+3
+Login
+
+
+
+
+LoginServlet.java
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.sql.*;
+
+public class LoginServlet extends HttpServlet {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        
+        String uname = request.getParameter("uname");
+        String pass= request.getParameter("pass");
+        
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/1294", "root", "");
+            Statement stmt = con.createStatement();
+            String sql = "SELECT * FROM login WHERE uname='" + uname + "' AND pass='" + pass + "'";
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            if (rs.next()) {
+                out.println("Hello!! " + uname);
+            } else {
+                out.println("Wrong username or password");
+            }
+            
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+Login.html
+<html>
+<body>
+<center>
+<form action="log" method="post">
+<h1>LOGIN PAGE</h1>
+LOGIN ID:<input type="text" name="uname">
+<br>
+PASSWORD:<input type="password" name="pass"><br><br>
+<input type="submit" value="Login" name="login">
+</form>
+</center>
+</body>
+</html>
+
+
+
+
+  <servlet>
+   <servlet-name>Login</servlet-name>
+   <servlet-class>LoginServlet</servlet-class>
+</servlet>
+<servlet-mapping>
+ <servlet-name>Login</servlet-name>
+  <url-pattern>/log</url-pattern>
+</servlet-mapping>
+</web-app>
+
+
+
+
+
+4
+LOGIN WITH XML
+
+Logindata.xml
+
+<?xml version="1.0"?>
+<users>
+<user>
+<uname>Varu</uname>
+<pwd>12345</pwd>
+</user>
+<user>
+<uname>Harshini</uname>
+<pwd>23456</pwd>
+</user>
+</users>
+
+loginxml.html
+<html>
+<head>
+<link rel="stylesheet" href="styles.css">
+<center><h1><u>
+REGISTRATION FORM</u><br><br>
+</h1>
+</head>
+<body align="left">
+<div style="text-align:left">
+<form action="Logx" method="post">
+Enter Name: <input type="text" name="username"><br><br>
+Enter Password: <input type="password" name="pwd"><br><br>
+<br><br>
+<input type="Submit" name="submit" value="submit">
+</form>
+
+</div>
+
+</body>
+</center>
+</head>
+</html>
+
+
+Userxml.java
+import org.w3c.dom.*;
+import javax.xml.parsers.*;
+import java.io.*;
+import java.util.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.sql.*;
+public class Userxml extends HttpServlet
+{
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+  {
+ try {	
+	int found=0;
+	response.setContentType("text/html");
+	PrintWriter out = response.getWriter();
+	String uname=request.getParameter("username");
+	String pwd=request.getParameter("pwd");
+        out.println(uname+" "+pwd);
+	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();     
+	DocumentBuilder builder = factory.newDocumentBuilder(); 
+	Document doc = builder.parse("C:/xampp/tomcat/webapps/1294/logindata.xml");
+	doc.getDocumentElement().normalize();
+        Element root=doc.getDocumentElement();
+        NodeList children = doc.getElementsByTagName("user");
+	out.println("<html><body>");
+        for (int i = 0; i < children.getLength(); i++)
+        {
+          Node nd = children.item(i);
+	 Element ele = (Element) nd;
+	if(uname.equals( ele.getElementsByTagName("uname").item(0).getTextContent()))
+          {
+	if(pwd.equals( ele.getElementsByTagName("pwd").item(0).getTextContent()))
+            {
+	found=1;
+     } 	
+   }	
+ } 
+ if(found==1){
+out.println("Login Successful !! Welcome  "+uname);
+}
+else {
+out.println("Invalid user !! login failed !");
+}
+	out.println("</body></html>");			
+}
+catch (Exception e) {
+         e.printStackTrace();
+      }
+}
+
+
+
+  <servlet>
+   <servlet-name>LogXml</servlet-name>
+   <servlet-class>LoginXml</servlet-class>
+</servlet>
+<servlet-mapping>
+ <servlet-name>LogXml</servlet-name>
+  <url-pattern>/logxml</url-pattern>
+</servlet-mapping>
+<servlet>
+
+
+
+5
+1.Calculator with database using servlet
+Code:
+
+Calcidb.java
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.sql.*;
+
+public class Calcidb extends HttpServlet {
+    public void doPost(HttpServletRequest request, HttpServletResponse response)  throws ServletException, IOException{
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        
+        int num1 = Integer.parseInt(request.getParameter("n1"));
+        int num2 = Integer.parseInt(request.getParameter("n2"));
+        String op = request.getParameter("op");
+        int result = 0;
+        try {
+	Class.forName("com.mysql.jdbc.Driver");
+	 Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/1293","root","");
+	 Statement stmt = con.createStatement();
+	String sql="SELECT * FROM operations WHERE num1='"+num1+"' and num2='"+num2+"' and op='"+op+"';";
+	 ResultSet rs = stmt.executeQuery(sql);
+	if(rs.next())
+	{
+	out.println(rs.getInt("num1")+""+rs.getString("op")+""+rs.getInt("num2")+"="+rs.getInt("res"));
+	}
+	else
+	{
+	int res1=0;
+	switch(op)
+	{
+	case "+":res1=num1+num2;
+	break;
+	case "-":res1=num1-num2;
+	break;
+	case "*":res1=num1*num2;
+	break;
+	case "/":res1=num1/num2;
+	break;
+	case "%":res1=num1%num2;
+	break;
+	}
+        
+        stmt.executeUpdate("insert into operations values("+num1+","+num2+",'"+op+"',"+res1+");");
+	      
+        out.println("<html>");
+        out.println("<head><title>Calculator Result</title></head>");
+        out.println("<body>");
+        out.println("<center>");
+        out.println("<h1>Result: " + res1 + "</h1>");
+        out.println("</center>");
+        out.println("</body>");
+        out.println("</html>");
+    }
+con.close();
+}
+catch (Exception e) {
+            e.printStackTrace();
+        }
+
+}
+}
+
+dbcalcul.html
+
+<html>
+<head>
+<link rel="stylesheet" href="styles.css" >
+
+<title>Calculator</title>
+</head>
+<center>
+<h2>Calculator</h2>
+<form action="calcul" method="post">
+Enter 1st number:
+<input type="text" name="n1" value=""><br><br>
+Enter 2nd number:
+<input type="text" name="n2" value=""><br><br>
+<input type="submit" value="+" name="op">
+<input type="submit" value="-" name="op">
+<input type="submit" value="*" name="op">
+<input type="submit" value="/" name="op">
+<input type="submit" value="%" name="op">
+</form>
+</center>
+</html>
+
+Web.xml
+
+<servlet>
+   <servlet-name>calculdb</servlet-name>
+   <servlet-class>Calcidb</servlet-class>
+</servlet>
+<servlet-mapping>
+ <servlet-name>calculdb</servlet-name>
+  <url-pattern>/calcul</url-pattern>
+</servlet-mapping>
+
+
+
+
+6
+ListCkServlet
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+public class ListCkServlet extends HttpServlet{ 
+ public void doGet(HttpServletRequest request,HttpServletResponse response)
+ throws ServletException, IOException {
+ response.setContentType("text/html");
+ PrintWriter out = response.getWriter();
+out.println("<html>");
+ out.println("<head>");
+ out.println("<title>List Cookies</title>");
+ out.println("</head>");
+ out.println("<body>");
+out.println("<h1> listing Cookies " + "</h1>");
+Cookie ck[]=request.getCookies(); 
+for(int i=0;i<ck.length;i++){ 
+out.print("<br>"+ck[i].getName()+" "+ck[i].getValue());
+}//printing name and value of cookie 
+out.println("<br><br><br>");
+out.println("<form action='adck' method='get'><input type='text' name='fnm' value=''/>"+"<input type='text' name='lnm' value=''/>"+"<input type='submit' value='AddCookie'/></form>");
+out.println("</body>");
+ out.println("</html>");
+} 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AddCkServlet
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+public class AddCkServlet extends HttpServlet{ 
+ public void doGet(HttpServletRequest request,HttpServletResponse response)
+ throws ServletException, IOException {
+ response.setContentType("text/html");
+ PrintWriter out = response.getWriter();
+out.println("<html>");
+ out.println("<head>");
+ out.println("<title>Servlet Servlet1</title>");
+ out.println("</head>");
+ out.println("<body>");
+String fname=request.getParameter("fnm");
+String lname=request.getParameter("lnm");
+Cookie ck = new Cookie(fname,lname);
+ck.setPath("/");
+ck.setMaxAge(60*60*24);
+response.addCookie(ck);
+ out.println("cookie added");
+ out.println("<h1> Cookie(name,value) : "+fname+""+lname+"</h1>"); 
+ out.println("<h1><a href ='lscks'>ListCookies</a></h1>");
+ out.println("</body>");
+ out.println("</html>");
+}
+}
+
+
+
+
+
+<servlet> 
+<servlet-name>cookies</servlet-name> 
+<servlet-class>ListCkServlet</servlet-class> 
+</servlet>  
+<servlet-mapping> 
+<servlet-name>cookies</servlet-name> 
+<url-pattern>/lscks</url-pattern> 
+</servlet-mapping>
+
+
+<servlet> 
+<servlet-name>ListCkServlet</servlet-name> 
+<servlet-class>AddCkServlet</servlet-class> 
+</servlet>  
+<servlet-mapping> 
+<servlet-name>ListCkServlet</servlet-name> 
+<url-pattern>/adck</url-pattern> 
+</servlet-mapping>
+
+
+
+
+
+
+Login with database
+
+
+Loginjsp.jsp
+
+<%@ page import = "java.sql.*"%>
+<html>
+<head>
+<link rel="stylesheet" href="styles.css">
+<center><h1><u>
+REGISTRATION FORM</u><br><br>
+</h1>
+</head>
+<body align="left">
+<div style="text-align:left">
+<form action="" method="post">
+Enter Name: <input type="text" name="username"><br><br>
+Enter Password: <input type="password" name="pwd"><br><br>
+<br><br>
+<input type="Submit" name="submit" value="submit">
+</form>
+
+</div>
+
+</body>
+</center>
+<%
+try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/1294", "root", "");
+		String name = request.getParameter("username");
+        String pwd = request.getParameter("pwd");
+            Statement stmt = con.createStatement();
+            String sql = "SELECT * FROM login WHERE uname='" + name + "' AND pass='" + pwd + "'";
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            if (rs.next()) {
+                out.println("Hi, Welcome " + name);
+            } else {
+                out.println("Invalid username or password");
+            }
+            
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+%>
+</head>
+</html>
+
+
+calculatordb_jsp.jsp
+
+<%@ page import = "java.sql.*"%>
+<html>
+<head>
+<title>Simple Calculator</title>
+</head>
+<body>
+<h2 align="center">Simple Calculator With DB</h2>
+<form method="get" action="">
+<table align="center">
+<tr>
+<td>Enter First Number :
+</td>
+<td><input type="text" name="num1" required></input>
+</td>
+</tr>
+<tr>
+<td>Enter Second Number :
+</td>
+<td><input type="text" name="num2" required></input>
+</td>
+</tr>
+<tr>
+<td colspan=2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="submit" name="op" value="+"></input> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="submit" name="op" value="-"></input> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="submit" name="op" value="*"></input> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="submit" name="op" value="/"></input> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="submit" name="op" value="%"></input>
+</td>
+</tr>
+</table>
+</form>
+<%
+try{  
+ 	Class.forName("com.mysql.jdbc.Driver");  
+	out.println("registered"+"</br>");
+Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3306/1294","root",""); 
+	out.println("connected"+"</br>"); 
+	String no1=request.getParameter("num1");
+	String no2=request.getParameter("num2");
+	String oprnd=request.getParameter("op");
+	char oprt=oprnd.charAt(0);
+	int n1=Integer.parseInt(no1);
+	int n2=Integer.parseInt(no2);
+Statement stmt=con.createStatement();  
+Statement st=con.createStatement();  
+String sql = "SELECT * from operations where num1="+n1+" AND num2="+n2+" and op='"+oprt+"';";
+ResultSet rs=stmt.executeQuery(sql);
+  if(rs.next())
+   {
+   out.println("Query Executed Record Exits !! Retrieving Record from database..."+"</br>");
+   out.println("Number 1 is : "+rs.getInt("num1")+"<br>");
+   out.println("Number 2 is : "+rs.getInt("num2")+"<br>");
+   out.println("Operation is : "+rs.getString("operator")+"<br>");
+   out.println("Result is : "+rs.getInt("res")+"<br>");  
+    } 
+    else
+    {  
+    int res=0;
+    out.println("First Number is : "+n1+"<br>");
+    out.println("Second Number is : "+n2+"<br>");
+    out.println("Operator is : "+oprt+"<br>");
+    	if(oprt=='+')
+    	{
+        res=n1+n2;
+        out.println("Result of Additon is : "+res);
+    	}
+    
+    	if(oprt=='-')
+    	{
+        res=n1-n2;
+        out.println("Result of Subtraction is : "+res);
+    	}
+    
+    	if(oprt=='*')
+    	{
+        res=n1*n2;
+        out.println("Result of Multiplication is : "+res);
+    	}
+    
+    	if(oprt=='/')
+    	{
+        res=n1/n2;
+       out.println("Result of Division is : "+res);
+    	}
+    
+    	if(oprt=='%')
+    	{
+        res=n1%n2;
+        out.println("Result of Modulus is : "+res);
+   	 }
+
+    String qry="insert into operations values("+n1+","+n2+",'"+oprt+"',"+res+");";
+    st.executeUpdate(qry);
+    out.println("Query Executed"+"</br>");
+
+    }  
+con.close(); 
+out.println("</h1></center></body></html>");
+}
+catch(Exception e)
+{ 
+System.out.println(e);}   
+%>
+</body>
+</html>
+
+
+
+
+age.jsp
+
+<html>
+<head>
+<link rel="stylesheet" href="styles.css">
+<center><h1><u>
+REGISTRATION FORM</u><br><br>
+</h1>
+</head>
+<body align="left">
+<div style="text-align:left">
+<form action="" method="post">
+Enter Name: <input type="text" name="username"><br><br>
+Enter Age: <input type="text" name="age"><br><br>
+<br><br>
+<input type="Submit" name="submit" value="submit">
+</form>
+
+</div>
+
+</body>
+</center>
+<%
+try{
+	String name = request.getParameter("username");
+	int age = Integer.parseInt(request.getParameter("age"));
+
+	if (age>=18) {
+                out.println("Hi, Welcome " + name);
+            } else {
+                out.println("You are not authorized to visit this website");
+            }
+}
+catch (Exception e) {
+            e.printStackTrace();
+        }
+
+%>
+</head>
+</html>
+
+
+
+
+Ajax.html
+
+<!DOCTYPE html>
+<html>
+<body>
+<center>
+<h1>LOGIN</h1>
+<form name="f">
+Username: <input type="text" id="username" name="username"><br><br>
+Password: <input type="password" id="password" name="password"><br><br>
+<input type="button" value="Submit" onclick="loadDoc()">
+</form>
+</center>
+<br><br>
+<table id="lgn"></table>
+<script>
+function loadDoc() {
+var xhttp = new XMLHttpRequest();
+xhttp.onreadystatechange = function() {
+if (this.readyState == 4 && this.status == 200) {
+myFunction(this);
+}
+};
+xhttp.open("GET", "user.xml", true);
+xhttp.send();
+}
+function myFunction(xml) {
+var username = document.getElementById("username").value;
+var password = document.getElementById("password").value;
+var i;
+var xmlDoc = xml.responseXML;
+var x = xmlDoc.getElementsByTagName("user");
+var f = false;
+for (i = 0; i < x.length; i++) { 
+var name = x[i].getElementsByTagName("name")[0].childNodes[0].nodeValue;
+var pwd = x[i].getElementsByTagName("pwd")[0].childNodes[0].nodeValue ;
+if (username === name && password === pwd) {
+document.getElementById("lgn").innerHTML = name+"    "+pwd+"<br><b>Login Successful!!</b>";
+f = true;
+break;
+}}
+if (!f) {
+    document.getElementById("lgn").innerHTML = "<b>Login Failure!!</b>";}}
+</script>
+</body>
+</html>
+
+
+User.xml
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<users>
+
+<user>
+
+<name>Sarada</name>
+
+<pwd>1234</pwd>
+
+</user>
+
+<user>
+
+<name>aashrita</name>
+
+<pwd>ashu</pwd>
+
+</user>
+
+</users>
+
+
+
+
+lacks.jsp
+<html>
+<head>
+<title>List Cookie </title>
+</head>
+<body>
+
+<h1> <u>Cookie List</u> </h1>
+<%
+Cookie ck[]=request.getCookies();  
+if(ck==null)
+{
+out.print(" No cookies added. List is Empty");
+}
+else
+{
+out.print(" Listing Cookies.....");
+for(int i=0;i<ck.length;i++){  
+ out.print("<br>"+ck[i].getName()+" "+ck[i].getValue());
+}
+}
+%>
+<br><br><br><br>Fill values to Add cookies....<br>
+<form action='addck.jsp' method='get'>
+<input type='text' name='fnm' value=''/>
+<input type='text' name='lnm' value=''/>
+<input type='submit' value='Add Cookie'/></form>
+</form>
+</body>
+</html>
+
+
+Addck.jsp
+
+<html>
+<head>
+<title>List Cookies </title>
+</head>
+<body>
+<center>
+<h1> Adding Cookies </h1>
+<%
+	String fname=request.getParameter("fnm");
+	String lname=request.getParameter("lnm");
+        Cookie ck = new Cookie(fname,lname);
+	ck.setPath("/");
+	ck.setMaxAge(60*60*24);
+	response.addCookie(ck);
+%>
+             <h3>cookie added!!</h3>
+            <h1> Cookie(name,value) : <%= fname+" "+lname %></h1>        
+           <h1><a href ='lscks.jsp'>List Cookies</a></h1>
+</center>
+</body>
+</html>
+
+
+
+cookies.html
+
+<html>
+<body>
+<center>
+<h1><u> Listing Cookies </u></h1>
+<form action="lscks.jsp" method="get">
+CLICK HERE :<input type='submit' value='List Cookie'/>
+</form></center>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Write an html code to enter your details into a registration from with text fields,checkbox,radio buttons
+
+CODE:
+<html>
+<head>
+<link rel="stylesheet" href="mystyle.css">
+<center><h1>REGISTRATION</h1><i class="fas fa-heart"></i></center>
+</head>
+<body>
+<center>
+<form>
+<h4>ENTER NAME: <input type="text" name="NAME" size="20" ></h4>
+<h4>ENTER PASSWORD: <input type="text" name="NAME" size="20" ></h4>
+<h4>SELECT GENDER:</h4> 
+<input type="radio"  name="r1" >MALE
+<input type="radio"  name="r1" >FEMALE
+<input type="radio"  name="r1">OTHER
+<br>
+<h4>ENTER ADDRESS:</h4>
+<textarea name="ADDRESS" rows="4"cols="50"></textarea>
+<h4>SELECT COURSE:</h4>
+<select name="course">
+<option>IT</option>
+<option>CSE</option>
+<option>CST</option>
+<option>EEE</option>
+<option>ECE</option>
+</select>
+<h4>MODE OF EDUCATION:</h4>
+<input type="radio" name="r2">OFFLINE
+<input type="radio" name="r2">ONLINE
+<input type="radio" name="r2">HYBRID
+<h4>UPLOAD FILE: <input type="file" name="f1"></h4>
+<br>
+<center><input type="button" name="select" value="SUBMIT"/></center>
+</form>
+</center>
+</body>
+</html>
+
+
+
+
+
+CSS
+body {
+  background-image:url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQpPMDaQ7NeBrhFCbQTmq7VIy1yvEL1nLLJPw&s");
+border: 3px solid blue;  
+  outline: 3px solid black;  
+  border-radius: 12px;  
+  font-size: 20px;  
+  font-weight: bold;  
+  margin: 30px;  
+  padding: 30px;  
+  outline-offset: 0.5em; 
+  text-align:left }
+  
+h1 { color: Purple;}
+h2 { color: Indigo;}
+h3 { color: PaleVioletRed;}
+h4 { color: PaleVioletRed;}
+p {
+ color: Black;
+border: 4px Black;
+text-align:left 
+}
+p.solid {border-style: solid;}
+text-align:left 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Output
+
+
+
+
+
+
+
+
+
+
+
+Write an HTML code including JavaScript to take 2 integers value and display the addition of those numbers
+
+Code:
+<html>
+<head>
+<script type="text/Javascript">
+function add()
+{
+let a=
+let b=
+c=a+b
+}
+</script>
+<style>
+<link rel="stylesheet" href="mystyle.css">
+</style>
+</head>
+<body>
+<form name=f1>
+<center><h1>ADDITION</h1><center>
+</h4>Enter first number:<input type="text" name=t1 value=""><br>
+</h4>Enter first number:<input type="text" name=t2 value=""><br>
+<button Onclick="add()">ADD</button>
+</h4>Result:<input type="text" name=t3  value=""><br>
+</form>
+</body>
+</html>
+ 
+
+OUTPUT:
+
+
+
+
+
+Write an HTML page including JavaScript to display the factorial of a given number
+
+Code:
+<html>
+<head>
+<script type="text/Javascript">
+function fact()
+{
+	let a=parseInt(document.f1.t1.value);
+	let r=1;
+	for(let i =1;i<=a;i++){
+	r=r*i;
+	}
+	document.f1.t3.value=r;
+}
+</script>
+<link rel="stylesheet" href="mystyle.css">
+</head>
+<body><center>
+	<form name=f1>
+		<h1>FACTORIAL</h1>
+		</h4>Enter number:<input type="text" name="t1" value=""><br><br>
+		
+		<button type="button" onclick="fact()">FACTORIAL</button><br><br>
+		</h4>Result:<input type="text" name="t3" value=""><br>
+
+	</form>
+</center></body>
+</html>
+
+OUTPUT:
+
+
+
+
+
+
+Write an HTML code Including JavaScript that takes a given set of integers and shows them after sorting them is descending order
+
+<html>
+<head>
+<script type="text/Javascript">
+function sort()
+{
+	let a=document.f1.t1.value;
+	const arr=a.split(",");
+	
+	for (let i =0;i<arr.length;i++){
+	for (let j =i;j<arr.length;j++){
+	if(arr[i]>arr[j]){
+	let t=arr[i];
+	arr[i]=arr[i+1];
+	arr[i+1]=temp;
+	}
+	}
+	}
+	document.f1.t3.value=arr.join(",");
+}
+</script>
+<link rel="stylesheet" href="mystyle.css">
+</head>
+<body><center>
+	<form name=f1>
+		<h1>SORITNG</h1>
+		</h4>Enter the numbers:<input type="text" name="t1" value=""><br><br>
+		
+		<button type="button" onclick="sort()">SORT</button><br><br>
+		</h4>Result:<input type="text" name="t3" value=""><br>
+
+	</form></center></body> </html>
+
+
+
+
+
+
+
+
+
+
+
+
+OUTPUT:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Write an HTML page including any required JavaScript that takes a number from one text field in the range of 0 to 999 and shows it in another text field in words. If the number is out of range, it should show “out of range” and if it is not a number, it should show “not a number” message in the result box.
+
+CODE:
+<html>
+<head>
+<link rel="stylesheet" href="addnumstyle.css">
+<script type="text/javascript">
+function numwrds()
+{
+let a = document.f1.t1.value;
+let words = convertNumberToWords(a);
+document.f1.t3.value = words;
+}
+function convertNumberToWords(number)
+{
+if((number<0)||(number>999))
+{
+alert("Not a valid number, please provide number between 0-999");
+}
+else
+{
+let words = '';
+for (let i = 0; i < number.length; i++)
+{
+let digit = parseInt(number[i]);
+switch (digit)
+{
+case 0:
+words += 'Zero ';
+break;
+case 1:
+words += 'One ';
+break;
+case 2:
+words += 'Two ';
+break;
+case 3:
+words += 'Three ';
+break;
+case 4:
+words += 'Four ';
+break;
+case 5:
+words += 'Five ';
+break;
+case 6:
+words += 'Six ';
+break;
+case 7:
+words += 'Seven ';
+break;
+case 8:
+words += 'Eight ';
+break;
+case 9:
+words += 'Nine ';
+break;
+default:
+break;
+}
+}
+return words.trim();
+}
+}
+</script>
+</head>
+
+
+<body>
+<div class="main">
+<form name="f1">
+<h2><center>Digits to words</center></h2>
+<label>Enter a Number: </label><br>
+<label><center>(0-999)</center></label>
+<input type="text" name="t1" value=""><br><br>
+
+
+<center><input type="button" onclick="numwrds()" value="Convert"><br><br></center>
+<label>Number in  words: </label>
+<input type="text" name="t3" value="">
+</form>
+</div>
+</body>
+</html>
+
+
+
+OUTPUT:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Write an HTML page that has one input, which can take multi-line text and a submit button. Once the user clicks the submit button, it should show the number of characters, words and lines in the text entered using an alert message. Words are separated with white space and lines are separated with new line character.
+
+CODE:
+<html>
+<head>
+<link rel="stylesheet" href="addnumstyle.css" >
+<script>
+function count()
+{
+var text=document.getElementById("str").value;
+var lcnt=0,wcnt=0,ccnt=0;
+var lines=text.split("\n");
+ lcnt=lines.length;
+for(var i=0;i<lcnt;i++)
+{
+ var words=lines[i].split(" ");
+wcnt+=words.length;
+for(var j=0;j<words.length;j++)
+{
+  ccnt+=words[j].length;
+}
+}
+document.getElementById("res1").value=lcnt;
+document.getElementById("res2").value=wcnt;
+document.getElementById("res3").value=ccnt;
+}
+</script>
+</head>
+<body>
+<center><b>
+<form>
+<center><h1><b>Count lines words and Characters</b></h1>
+Enter Text:<br>
+<textarea id="str" cols="50" rows="5" value="text">  
+</textarea><br><br>
+<center><input type="button" onclick="count()"  value="COUNT"><br></center><br>
+<label>Number of lines:</label>
+<input type="text" " id="res1"  value=""><br><br>
+<label>Number of words:</label>
+<input type="text" " id="res2"  value=""><br>
+<label>Number  of characters:</label>
+<input type="text" " id="res3"  value="">
+</form>
+</center>
+</b>
+</body>
+</html>
+
+OUTPUT:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A user validation web application, where the user submits the login name and password to the server. The name and password are checked against the data already available in Database and if the data matches, successful login page is returned. Otherwise a failure message is shown to the user using php.
+
+
+
+<html>
+<head>
+<link rel="stylesheet" href="mystyle.css" >
+<center><h1><b>Bill notification FORM</h1></b></center>
+</head>
+<body>
+<center>
+<form action="bill.php" method="POST" enctype="multipart/Form-data">
+<b>
+<label>Enter your name: </label>
+<input type="text" name="username" id="username" required/>    
+<br>  
+<br>
+<label>Mobile number: </label>
+<input type="text" name="mobile" id="mobile"  required/>    
+<br>  
+<br>
+<label>Enter your Email: </label>
+<input type="text" id="email" name="email"  required/>    
+<br>  
+<br>
+<label>Enter your Password:  </label>
+<input type="Password" id="pwd" name="pwd"  required> 
+<br> 
+<br>
+<label>  Gender : </label>  
+<input type="radio" id="male" name="gender" value="male">
+  <label for="male">MALE</label>
+  <input type="radio" id="female" name="gender" value="female">
+  <label for="female">FEMALE</label>
+  <input type="radio" id="other" name="gender" value="other">
+  <label for="other">OTHER</label>
+<br> <br>
+<label> Bill Notification: </label>
+
+
+
+<input type="checkbox" id="app1" name="app1" value="SMS">
+ <label for="sms">SMS</label>
+<input type="checkbox" id="app2" name="app2" value="EMAIL">
+ <label for="email">EMAIL</label>
+<input type="checkbox" id="app3" name="app3" value="WHATSAPP">
+ <label for="whatsapp">WHATSAPP</label>
+<input type="checkbox" id="app4" name="app4" value="CALL">
+ <label for="call">CALL</label>
+<br> <br>
+<label>ID Proof: </label>
+<input type="file" name="f1" >
+<br><br>
+<label>Languages Known : </label>   
+<select name="lang[]" multiple >  
+<option value="eng">ENGLISH</option>  
+<option value="hindi">HINDI</option>  
+<option value="telugu">TELUGU</option>  
+<option value="italian">ITALIAN</option>  
+<option value="french">FRENCH</option>  
+<option value="spanish">SPANISH</option>  
+<option value="korean">KOREAN</option>  
+</select> 
+<br>
+<br>
+<center>
+<input type="submit" value="send"/>  
+</center>
+</b>
+</form>  
+</center>
+</body>  
+</html>  
+
+
+Bill notification(PHP):
+<html>
+<head>
+ <link rel="stylesheet" href="mystyle.css" >
+</head>
+<body>
+<center>
+
+
+<form>
+<b>
+<?php
+$name = $mobile = $email = $password = $gender =  "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Validate name
+    if (empty($_POST["name"])) {
+        echo "Name is required"."<br>";
+    } else {
+        $name = $_POST["name"];
+        // Check if name only contains letters and whitespace
+        if (!preg_match("/^[a-zA-Z-' ]*$/", $name)) {
+            echo "Only letters and white space allowed in Name"."<br>";
+        }
+       else{
+	echo "HI, $name <br>";
+      }
+    }
+
+    // Validate mobile number
+    if (empty($_POST["mobile"])) {
+        echo "Mobile number is required"."<br>";
+    } else {
+        $mobile = $_POST["mobile"];
+        // Check if mobile number is well-formed
+        if (!preg_match("/^[0-9]{10}$/", $mobile)) {
+            echo "Invalid mobile number format"."<br>";
+        }
+       else{
+	  echo "Mobile number is: $mobile <br>";
+       }
+    }
+
+    // Validate email
+    if (empty($_POST["email"])) {
+        echo "Email is required"."<br>";
+    } else {
+        $email = $_POST["email"];
+        // Check if email address is well-formed
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo "Invalid email format"."<br>";
+      
+
+  }
+       else{
+	echo "Email is: $email <br>";
+       }
+    }
+
+    // Validate password
+    if (empty($_POST["pass"])) {
+        echo "Password is required"."<br>";
+    } else {
+        $password = $_POST["pass"];
+        // Check if password length is at least 8 characters
+        if (strlen($password) < 8) {
+            echo "Password must be at least 8 characters long"."<br>";
+        }
+    }
+
+    // Validate gender
+    if (empty($_POST["gender"])) {
+        echo "Gender is required";
+    } else {
+        $gender = $_POST["gender"];
+        echo "Gender: $gender <br>";
+    }
+
+    // Validate notification
+   echo"Bill notifications selected are:"."<br>";
+    if (isSet($_POST["app1"]))
+    {
+	echo $_POST["app1"],"<br>";
+    }
+    if(isSet($_POST["app2"])){
+	echo $_POST["app2"],"<br>";
+   }
+    if(isSet($_POST["app3"])){
+	echo $_POST["app3"],"<br>";
+   }
+   if(isSet($_POST["app4"])){
+	echo $_POST["app4"],"<br>";
+   }
+   
+   echo "Languages selected: <br>";
+
+
+
+
+   foreach($_POST["lang"] as $l)
+   {
+	echo  $l."<br>";
+   }
+  echo "Details of the file uploaded are: <br>";
+  echo "You uploaded file:" ,$_FILES["f1"]['name'],"<br>";
+  echo "Size of uploaded file is: ", $_FILES["f1"]["size"],"<br>";
+  echo "Type of uploaded file is:", $_FILES["f1"]["type"],"<br>";
+}
+?>
+</b>
+</form>
+</center>
+</body>
+</html>
+
+
+output:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A web application for implementation: The user is first served a login page which takes user’s name and password. After submitting the details, the server checks these values against the data from a database and takes the following decisions. If name and password matches, serves a welcome page with user’s full name. If name matches and password doesn't match, then serves “password mismatch” page If name is not found 148 Information Technology In the database, serves a registration page, where user’s full name is askedand on submitting the full name, it stores, the login name, password and full name in the database (hint: use session for storing the submitted loginname and password)
+
+Code:
+
+<html>
+<head>
+<link rel="stylesheet" href="style1.css" >
+</head>
+<body>
+<h1>DISPLAY TABLE </h1>
+<?php
+$con=mysqli_connect("localhost","root","") or die("not connected");
+$db=mysqli_select_db($con,"1294") or die("not connected");
+$query="insert into student(sno,sname) value('103','Ria')";
+$result=mysqli_query($con,$query) or die("query failed: mysqli_error($con)");
+$query="select * from student";
+$result=mysqli_query($con,$query) or die("query failed: mysqli_error($con)");
+echo "<table border=1>";
+echo "<tr>";
+echo "<th>Roll No</th><th>Name</th>";
+echo "</tr>";
+while($row=mysqli_fetch_array($result))
+{
+  echo "<tr>";
+  echo "<td>",$row['sno'],"</td><td>",$row['sname'],"</td>";
+  echo "</tr>";
+}
+echo "</table>";
+mysqli_close($con);
+?>
+</body>
+</html>
+
+
+
+
+
+Output:
+
+
+
+
+
+2.Login form 
+
+Code:
+
+<html>
+<head>
+<link rel="stylesheet" href="style1.css" >
+<center><h1><b>LOGIN FORM</h1></b></center>
+</head>
+<body>
+<center>
+<form action="logincon.php" method="POST">
+<b>
+<label>Enter username: </label>
+<input type="name" id="username" name="username" >    
+<br>  
+<br>
+<label>Enter your Password:  </label>
+
+
+
+
+<input type="password" id="pwd" name="pwd" > 
+<br> 
+<br>
+<center>
+<input type="Submit" value="Submit"/>  
+</center>
+</b>
+</form>  
+</center>
+</body>  
+</html>  
+
+OUTPUT :
+
+
+
+
+
+
+
+
+
+
+Username and password verification from database for login
+
+Code:
+
+<html>
+<head>
+<link rel="stylesheet" href="style1.css" >
+</head>
+<body>
+<center><b><h1>
+<form>
+<?php
+$con=mysqli_connect("localhost","root","") or die("not connected");
+$db=mysqli_select_db($con,"1294") or die("not connected");
+$us=$_POST["username"];
+$pwd=$_POST["pwd"];
+$query="select * from login where username='$us' and password='$pwd'";
+$result=mysqli_query($con,$query) or die("query failed: mysqli_error($con)");
+if(mysqli_num_rows($result)>0)
+{
+  echo"Welcome ", $us,"!";
+}
+else
+{
+  echo"Invalid username and password";
+}
+mysqli_close($con);
+?>
+</form>
+</center>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+Output:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A simple calculator web application that takes two numbers and an operator (+, -, /, * and %) from an HTML page and returns the result page with the operation performed on the operands. Modify the above program such that it stores each query in a database and checks the database first for the result. If the query is already available in the DB, it returns the value that was previously computed (fromDB) or it computes the result and returns it after storing the new
+Query and result in DB.
+
+
+Code:
+
+<html>
+<head>
+ <link rel="stylesheet" href="style1.css" >
+</head>
+<body>
+<center>
+<form name="f1" action="calc.php" method="post" enctype="multipart/form_data">
+<h2>Calculate here!</h2>
+Enter 1st number:
+<input type="text" name="num1" value=""><br><br>
+Enter 2nd number
+<input type="text" name="num2" value=""><br><br>
+<input type="submit" value="+" name="opr">
+<input type="submit" value="-" name="opr">
+<input type="submit" value="*" name="opr">
+<input type="submit" value="/" name="opr">
+<input type="submit" value="%" name="opr">
+</form>
+</body>
+</center>
+</html>
+
+Php code:
+
+<html>
+<head>
+ <link rel="stylesheet" href="style1.css" >
+</head>
+<body>
+
+
+
+
+<?php
+$n1=$_POST['num1'];
+$n2=$_POST['num2'];
+$op=$_POST['opr'];
+$connection=mysqli_connect("localhost","root","") or die("couldnt connect to server");
+$db=mysqli_select_db($connection,"1294") or die("couldnt connect to database ");
+$q="select * from operations where num1='$n1' and num2='$n2' and op='$op'";
+$result=mysqli_query($connection,$q) or die ("query failed : ".mysqli+error($connection));
+$row=mysqli_fetch_array($result);
+if(mysqli_num_rows($result)>0)
+{
+echo "First number is ",$n1,"<br>";
+echo "Second number is ",$n2,"<br>";
+echo "Operator is ",$op,"<br>";
+echo " Result is ",$n1,$op,$n2,"=",$row['res'],"<br>";
+}
+else{
+if($op=='+')
+{
+$res=$n1+$n2;
+}
+else if($op=='-')
+{
+$res=$n1-$n2;
+}
+else if($op=='*')
+{
+$res=$n1*$n2;
+}
+else if($op=='/')
+{
+$res=$n1/$n2;
+}
+else
+{
+$res=$n1%$n2;
+}
+echo "1st number is ",$n1,"<br>";
+echo "2nd number is ",$n2,"<br>";
+echo "operator is ",$op,"<br>";
+
+
+
+
+echo " result is",$n1,$op,$n2,"=",$res,"<br>";
+$query="insert into operations(num1,num2,op,res) values ('$n1','$n2','$op','$res')";
+$result=mysqli_query($connection,$query);
+}
+?>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Write an HTML page that contains a selection box with a list of 5 countries. When the user selects a country, its capital should be printed next to the list. Add CSS to customize the properties of the font of the capital (color, bold and font size).
+
+
+<html>
+<head>
+<link rel="stylesheet" href="mystyle.css">
+
+  </head><body>
+<div id="container">
+  <h2>Country Capital</h2>
+  <select id="countrySelect" onchange="showCapital()">
+    <option value="">Select a Country</option>
+    <option value="india">India</option>
+    <option value="usa">United States</option>
+    <option value="canada">Canada</option>
+    <option value="uk">United Kingdom</option>
+    <option value="france">France</option>
+    <option value="germany">Germany</option>
+    <option value="japan">Japan</option>
+  </select>
+  <p id="St"></p>
+</div>
+<script>
+  function showCapital() {
+    var countrySelect = document.getElementById("countrySelect");
+    var St = document.getElementById("St");
+    var selectedCountry = countrySelect.value.toLowerCase();
+
+
+
+    var capital = getCapital(selectedCountry);
+    St.innerHTML = "The capital of " + capitalizeFirstLetter(selectedCountry) + " is <span style='color: orange;'>" + capital + "</span>";
+  }
+  function getCapital(country) {
+    switch (country) {
+	case "india":
+        return "New Delhi";
+      case "usa":
+        return "Washington, D.C.";
+      case "canada":
+        return "Ottawa";
+      case "uk":
+        return "London";
+      case "france":
+        return "Paris";
+      case "germany":
+        return "Berlin";
+      case "japan":
+        return "Tokyo";
+      default:
+        return "Unknown";
+    }  }
+  function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+</script>
+
+
+
+</body></html>
+Output:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A web application that lists all cookies stored in the browser on clicking “List Cookies” button. Add cookies if necessary
+
+<html>
+<head><style>
+.mydiv{
+      width: 400px;
+      margin: auto;
+      padding: 20px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      background-color:lightgrey;
+    }
+</style></head>
+<body>
+<div class="mydiv"><center>
+<form name="f1" action="cookieinfo.php" method="post">
+<h2>Cookies</h2>Enter the name of the cookie:
+<input type="text" name="name" value=""><br><br>
+Enter the value of the cookie:
+<input type="text" name="value" value=""><br><br>
+<input type="submit" value="setCookie">
+<input type="submit" value="listCookie">
+</form></center></div></body></html>
+PHP Code:
+<?php
+$name=$_POST['name'];
+
+
+$val=$_POST['value'];
+setcookie("$name","$val",time()+4500);
+echo "Cookie $name set successfully<br><br>";
+if(!empty($_COOKIE)){
+foreach($_COOKIE as $k=>$v)
+echo "$k $v","<br>";
+}
+else{
+echo "No cookie found<br>";
+}
+?>
+Output:
+              
+
+
+
+
+
+
+A web application takes a name as input and on submit it shows a hello page where is taken from the request. It shows the start time at the right top corner of the page and provides a logout button. On clicking this button, it should show a logout page with Thank You message with the duration of usage (hint: Use session to store name and time)
+Index.php
+
+<html>
+<head>
+<title>SessionIndex Page</title>
+<link rel="stylesheet" href="mystyle.css">
+</head>
+<body>
+<center>
+<div class="main">
+<form name="frm1" method="post">
+Enter username:<input type="text" name="uname" style="height:40px"></input></br>
+<input type="submit" name="Submit" value="submit" style="width:100px;height:50px"></input>
+</form>
+</div></center>
+<?php
+if(isset($_POST['Submit']))
+{
+date_default_timezone_set('Asia/Kolkata');
+$curtime=date('h:i:s:A',time());
+session_start();
+$_SESSION["name"]=$_POST["uname"];
+$_SESSION["stime"]=$curtime;
+header('Location:home.php');
+}
+?>
+</body>
+</html>
+
+
+Home.php
+
+<html>
+<head>
+
+
+
+<title>WELCOME TO SESSIONS</title>
+<link rel="stylesheet" href="mystyle.css">
+</head>
+<body>
+<center>
+<div class="main">
+<?php
+session_start();
+$stime=$_SESSION['stime'];
+echo"<p align='right'><b>",$_SESSION['stime']."</b></p>";
+echo"Welcome:".$_SESSION['name']."<br><br>";
+?>
+<form name="form2" method="post">
+<input type="submit" name="Logout" value="Logout" style="height:30px;align:right"/>
+</form>
+</div>
+</center>
+<?php
+if(isset($_POST['Logout']))
+{
+$uname=$_POST["uname"];
+date_default_timezone_set('Asia/Kolkata');
+$curtime=date('h:i:s:A',time());
+session_start();
+$_SESSION["stime"]=$_SESSION["stime"];
+$_SESSION["etime"]=$curtime;
+header('Location:welcome1.php');
+
+
+}
+?>
+</body>
+</html>
+
+Welcome.php
+
+<html>
+<head>
+<title>Welcome to sessions</title>
+<link rel="stylesheet" href="mystyle.css">
+</head>
+<body>
+<center>
+<div class="main">
+<?php
+session_start();
+echo"Thankyou ".$_SESSION["name"]."<br/>";
+$stime=$_SESSION['stime'];
+$etime=$_SESSION['etime'];
+echo "Your login time is: ".$stime."<br/>";
+echo "Your logout time is: ".$etime."<br/>";
+?>
+</div>
+</center>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A web application that takes name and age from an HTML page. If the age is less than18, it should send a page with “Hello , you are not authorized to visit this site” message, where should be replaced with the entered name. Otherwise it should send “Welcome to this site” message
+
+age.php
+<html>
+<head>
+<link rel="stylesheet" href="mystyle.css">
+<center><h1><u>
+REGISTRATION FORM</u><br><br>
+</h1>
+</head>
+<center>
+<form action="welcome_age.php" method="get">
+Enter Name: <input type="text" name="username"><br><br>
+Enter Age: <input type="text" name="age"><br><br>
+<br><br>
+<input type="Submit" name="submit" value="submit">
+</form>
+</div>
+</body>
+</center>
+</head>
+</html>
+
+Welcome page.php
+<html>
+
+
+<head>
+<link rel="stylesheet" href="mystyle.css">
+<center><h1><u>
+REGISTRATION FORM</u><br><br>
+</h1>
+</head>
+<center>
+<form action="welcome_age.php" method="get">
+Enter Name: <input type="text" name="username"><br><br>
+Enter Age: <input type="text" name="age"><br><br>
+<br><br>
+<input type="Submit" name="submit" value="submit">
+</form>
+</div>
+</body>
+</center>
+</head>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+Output:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Create an XML document that contains 10 users information. Write a Java program, which takes User Id as input and returns the user 2018-2019 147details by taking the user information from the XML document
+
+
+Xml file
+
+<?xml version="1.0"?>
+<users>
+<user>
+<uname>Varu</uname>
+<pwd>12345</pwd>
+</user>
+<user>
+<uname>Harshini</uname>
+<pwd>98765</pwd>
+</user>
+<user>
+<uname>Varsha</uname>
+<pwd>57689</pwd>
+</user>
+</users>
+
+Login
+<html>
+<head>
+<link rel="stylesheet" href="mystyle.css">
+<title>Login</title></head>
+<body>
+<form name="f1" method="post">
+<center>
+<table align="center" width="70%" border="0">
+<tr>
+<td align="center">
+<b><h3>Member Login</h3></b>
+</td><br/>
+</tr>
+<tr>
+<td>Username : </td>
+<td><input name="uname" type ="text" autofocus/></td>
+
+
+
+<tr>
+<td>Password : </td>
+<td><input name="pwd" type ="password"></td>
+</tr>
+<tr>
+<td><input name="submit" type ="submit" value="Login"></td>
+</tr>
+</table>
+</center>
+</form>
+<?php
+if(isset($_POST["submit"]))
+{
+	$uname=$_POST["uname"];
+	$pwd=$_POST["pwd"];
+	$xml=simplexml_load_file("data.xml") or die("Error");
+	foreach($xml->children() as $users)
+	{
+		if($users->uname==$uname)
+		{
+			if($users->pwd==$pwd)
+			{
+				echo"<center><b>Hello..".$uname;
+				echo" Login Successfull</b></center>";
+				return;
+			}
+			else
+			{
+			echo"<center><b>Invalid password</b></center>";
+			return;
+			}
+		}
+	}
+	echo"<center><b>Invalid Login</b></center>";
+}
+?>
+</body>
+</html>
+
+
+Create an XML document that contains 10 users information. Write a Java program, which takes User Id as input and returns the user 2018-2019 147 details by taking the user information from the XML document using (a)DOM Parser and (b) SAX parser
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<student-details id="box">
+<student>
+<studentid>123</studentid>
+<name>Varenya</name>
+<address>parade grounds</address>
+<gender>female</gender>
+</student>
+<student>
+<studentid>456</studentid>
+<name>ashritha</name>
+<address>Gnits</address>
+<gender>female</gender>
+</student>
+</student-details>
+
+File
+import org.w3c.dom.*;
+import javax.xml.parsers.*;
+import java.util.Scanner;
+import java.io.*;
+public class XmlDom{
+	public static void main(String args[]) throws Exception{
+		DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder=factory.newDocumentBuilder();		
+		Document doc=builder.parse("xml_student_data.xml");
+		NodeList list=doc.getElementsByTagName("student");
+		Scanner sc=new Scanner(System.in);
+		int n=sc.nextInt();
+		int flag=0;
+		for(int i=0;i<list.getLength();i++){
+			Node node=list.item(i);
+			if(node.getNodeType()==Node.ELEMENT_NODE){
+				Element e=(Element)node;
+				int x=Integer.parseInt(e.getElementsByTagName("studentid").item(0).getTextContent());
+				
+
+
+if(x==n){
+					System.out.println("\n\nSTUDENT-DETAILS");
+					System.out.println("===================");
+					System.out.println("Student id:\t"+e.getElementsByTagName("studentid").item(0).getTextContent());
+					System.out.println("Student name:\t"+e.getElementsByTagName("name").item(0).getTextContent());
+					System.out.println("Address:\t"+e.getElementsByTagName("address").item(0).getTextContent());
+					System.out.println("Gender:\t"+e.getElementsByTagName("gender").item(0).getTextContent());
+					flag=1;
+					break;
+				}else
+					flag=0;
+			}
+		}
+		if(flag==0)
+			System.out.println("Student id is not present. Try again!");
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SAX parser
+import java.io.File;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+import java.util.Scanner;
+public class sax {
+public static void main(String[] args) {
+try {
+Scanner sc = new Scanner(System.in);
+System.out.print("Enter the employee ID: ");
+
+
+
+
+String s= sc.nextLine();
+File inputFile = new File("employee.xml");
+SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+SAXParser saxParser = saxParserFactory.newSAXParser();
+EmployeeHandler employeeHandler = new EmployeeHandler(s);
+saxParser.parse(inputFile, employeeHandler);
+} catch (Exception e) {
+e.printStackTrace();
+}
+}
+}
+class EmployeeHandler extends DefaultHandler {
+private String s;
+private boolean isTargetEmployee = false;
+private boolean isFirstName = false;
+private boolean isLastName = false;
+private boolean isNickName = false;
+
+
+private boolean isSalary = false;
+public EmployeeHandler(String s) {
+this.s = s;
+}
+public void startElement(String uri, String localName, String qName, Attributes attributes) throws
+SAXException {
+if (qName.equalsIgnoreCase("employee")) {
+String id = attributes.getValue("id");
+if (id.equals(s)) {
+isTargetEmployee = true;
+System.out.println("Employee ID : " + id);
+}
+} else if (isTargetEmployee && qName.equalsIgnoreCase("firstname")) {
+isFirstName = true;
+} else if (isTargetEmployee && qName.equalsIgnoreCase("lastname")) {
+isLastName = true;
+} else if (isTargetEmployee && qName.equalsIgnoreCase("nickname")) {
+isNickName = true;
+} else if (isTargetEmployee && qName.equalsIgnoreCase("salary")) {
+isSalary = true;
+}
+
+
+
+}
+public void endElement(String uri, String localName, String qName) throws SAXException {
+if (qName.equalsIgnoreCase("employee")) {
+if (isTargetEmployee) {
+System.out.println("End Element :" + qName);
+}
+isTargetEmployee = false;
+}
+}
+
+public void characters(char character[], int start, int length) throws SAXException {
+if (isTargetEmployee) {
+if (isFirstName) {
+System.out.println("First Name: " + new String(character, start, length));
+isFirstName = false;
+} else if (isLastName) {
+System.out.println("Last Name: " + new String(character, start, length));
+isLastName = false;
+} else if (isNickName) {
+System.out.println("Nick Name: " + new String(character, start, length));
+isNickName = false;
+} else if (isSalary) {
+System.out.println("Salary: " + new String(character, start, length));
+isSalary = false;
+}
+}
+}
+}
+
+
+Employee.xml
+<class>
+<employee id="101">
+<firstname>varenya</firstname>
+<lastname>gyan</lastname>
+<nickname>varu</nickname>
+<salary>100000</salary>
+</employee>
+<employee id="102">
+<firstname>varsha</firstname>
+<lastname>K</lastname>
+
+
+
+<nickname>vars</nickname>
+<salary>50000</salary>
+</employee>
+<employee id="103">
+<firstname>ashritha</firstname>
+<lastname>devi</lastname>
+<nickname>ashi</nickname>
+<salary>800000</salary>
+</employee>
+</class>
+
+
+
+
+
+Ajax.html
+
+<!DOCTYPE html>
+<html>
+<body>
+<center>
+<h1>LOGIN</h1>
+<form name="f">
+Username: <input type="text" id="username" name="username"><br><br>
+Password: <input type="password" id="password" name="password"><br><br>
+<input type="button" value="Submit" onclick="loadDoc()">
+</form>
+</center>
+<br><br>
+<table id="lgn"></table>
+<script>
+function loadDoc() {
+var xhttp = new XMLHttpRequest();
+xhttp.onreadystatechange = function() {
+if (this.readyState == 4 && this.status == 200) {
+myFunction(this);
+}
+};
+xhttp.open("GET", "user.xml", true);
+xhttp.send();
+}
+function myFunction(xml) {
+var username = document.getElementById("username").value;
+var password = document.getElementById("password").value;
+var i;
+var xmlDoc = xml.responseXML;
+var x = xmlDoc.getElementsByTagName("user");
+var f = false;
+for (i = 0; i < x.length; i++) { 
+var name = x[i].getElementsByTagName("name")[0].childNodes[0].nodeValue;
+var pwd = x[i].getElementsByTagName("pwd")[0].childNodes[0].nodeValue ;
+if (username === name && password === pwd) {
+document.getElementById("lgn").innerHTML = name+"    "+pwd+"<br><b>Login Successful!!</b>";
+f = true;
+break;
+}}
+if (!f) {
+    document.getElementById("lgn").innerHTML = "<b>Login Failure!!</b>";}}
+</script>
+</body>
+</html>
+
+
+Userxml.java
+import org.w3c.dom.*;
+import javax.xml.parsers.*;
+import java.io.*;
+import java.util.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.sql.*;
+public class Userxml extends HttpServlet
+{
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+  {
+ try {	
+	int found=0;
+	response.setContentType("text/html");
+	PrintWriter out = response.getWriter();
+	String uname=request.getParameter("username");
+	String pwd=request.getParameter("pwd");
+        out.println(uname+" "+pwd);
+	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();     
+	DocumentBuilder builder = factory.newDocumentBuilder(); 
+	Document doc = builder.parse("C:/xampp/tomcat/webapps/1294/logindata.xml");
+	doc.getDocumentElement().normalize();
+        Element root=doc.getDocumentElement();
+        NodeList children = doc.getElementsByTagName("user");
+	out.println("<html><body>");
+        for (int i = 0; i < children.getLength(); i++)
+        {
+          Node nd = children.item(i);
+	 Element ele = (Element) nd;
+	if(uname.equals( ele.getElementsByTagName("uname").item(0).getTextContent()))
+          {
+	if(pwd.equals( ele.getElementsByTagName("pwd").item(0).getTextContent()))
+            {
+	found=1;
+     } 	
+   }	
+ } 
+ if(found==1){
+out.println("Login Successful !! Welcome  "+uname);
+}
+else {
+out.println("Invalid user !! login failed !");
+}
+	out.println("</body></html>");			
+}
+catch (Exception e) {
+         e.printStackTrace();
+      }
+}
+
+
+
